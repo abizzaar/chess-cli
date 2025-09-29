@@ -1,0 +1,9 @@
+{
+	"extends": "@sindresorhus/tsconfig",
+	"compilerOptions": {
+		"noUnusedLocals": false, // TODO: delete
+		"noUnusedParameters": false, // TODO: delete
+		"outDir": "dist"
+	},
+	"include": ["src", "test.tsx"]	
+}
