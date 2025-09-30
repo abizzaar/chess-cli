@@ -11,7 +11,7 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"test-lint": "prettier --check . && xo",
-		"test": "npm run build && ava dist/test.js",
+		"test": "npm run build && ava dist/test/*.test.js",
 		"run": "npm run build && node dist/cli.js"
 	},
 	"files": [

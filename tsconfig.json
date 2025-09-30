@@ -5,5 +5,5 @@
 		"noUnusedParameters": false, // TODO: delete
 		"outDir": "dist"
 	},
-	"include": ["src", "test.tsx"]	
+	"include": ["src", "test"]	
 }

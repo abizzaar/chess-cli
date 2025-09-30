@@ -24,7 +24,7 @@
  */
 type Color = "white" | "black"
 
-interface Pos {
+export type Pos = {
     row: number,
     col: number
 }
@@ -45,8 +45,6 @@ class Pawn extends Piece {
         const result = []
 
         const rowDelta = this.color === "white" ? 1 : -1
-
-        const opponentColor = this.color === "white" ? "black" : "white"
 
         // starting position double move
         const startingRow = this.color === "white" ? 1 : 6
@@ -92,7 +90,7 @@ class Pawn extends Piece {
 
 class King extends Piece {
     getMoves(pos: Pos, board: Board): Pos[] {
-        const deltas = [
+        const directions = [
             [0, 1],
             [1, 0],
             [0, -1],
@@ -102,7 +100,7 @@ class King extends Piece {
             [1, -1],
             [-1, 1]
         ]
-        return deltas
+        return directions
             .map(([rowD, colD]) => ({
                 row: pos.row + rowD!,
                 col: pos.col + colD!
@@ -113,29 +111,86 @@ class King extends Piece {
     }
 }
 
-class Queen extends Piece {
-    getMoves(pos: Pos, board: Board): Pos[] {
-        return []
-    }
-}
-
 class Rook extends Piece {
     getMoves(pos: Pos, board: Board): Pos[] {
-        return []
-    }
-}
+        const directions = [
+            [0, 1],
+            [1, 0],
+            [0, -1],
+            [-1, 0]
+        ]
 
-class Horse extends Piece {
-    getMoves(pos: Pos, board: Board): Pos[] {
-        return []
+        return computeBishopRookQueenMoves(
+            pos,
+            this.color,
+            board,
+            directions
+        )
     }
 }
 
 class Bishop extends Piece {
     getMoves(pos: Pos, board: Board): Pos[] {
-        return []
+        const directions = [
+            [1, 1],
+            [-1, 1],
+            [1, -1],
+            [-1, -1]
+        ]
+
+        return computeBishopRookQueenMoves(
+            pos,
+            this.color,
+            board,
+            directions
+        )
     }
 }
+
+class Queen extends Piece {
+    getMoves(pos: Pos, board: Board): Pos[] {
+        const directions = [
+            [0, 1],
+            [1, 0],
+            [0, -1],
+            [-1, 0],
+            [1, 1],
+            [-1, -1],
+            [1, -1],
+            [-1, 1]
+        ]
+
+        return computeBishopRookQueenMoves(
+            pos,
+            this.color,
+            board,
+            directions
+        )
+    }
+}
+
+class Horse extends Piece {
+    getMoves(pos: Pos, board: Board): Pos[] {
+        const deltas = [
+            [2, 1],
+            [-2, 1],
+            [2, -1],
+            [-2, -1],
+            [1, 2],
+            [-1, 2],
+            [1, -2],
+            [-1, -2]
+        ]
+        
+        return deltas.map(([rowD, colD]) => {
+            return {
+                row: pos.row + rowD!,
+                col: pos.col + colD!
+            }
+        }).filter(pos => isInBoard(pos) && board[pos.row]![pos.col]?.color !== this.color)
+    }
+}
+
 
 const identifiers: { [id: string]: new (color: Color) => Piece } = {
     "r": Rook,
@@ -218,6 +273,33 @@ export class ChessBoard {
 }
 
 // Utils
+
+function computeBishopRookQueenMoves(pos: Pos, color: Color, board: Board, directions: number[][]) {
+    const result = []
+
+    for (let [rowD, colD] of directions) {
+        let newPos = {
+            row: pos.row + rowD!,
+            col: pos.col + colD!
+        }
+
+        while (isInBoard(newPos) && board[newPos.row]![newPos.col] === null) {
+            result.push(newPos)
+            newPos = {
+                row: newPos.row + rowD!,
+                col: newPos.col + colD!
+            }
+        }
+
+        // kill move
+        if (isInBoard(newPos) && color !== board[newPos.row]![newPos.col]!.color) {
+            result.push(newPos)
+        }
+    }
+
+    return result 
+}
+
 function isLowercase(char: string) {
     return char.toLowerCase() === char
 }
