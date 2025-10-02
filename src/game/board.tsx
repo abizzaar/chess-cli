@@ -191,7 +191,6 @@ class Horse extends Piece {
     }
 }
 
-
 const identifiers: { [id: string]: new (color: Color) => Piece } = {
     "r": Rook,
     "h": Horse,
@@ -199,6 +198,35 @@ const identifiers: { [id: string]: new (color: Color) => Piece } = {
     "q": Queen,
     "k": King,
     "p": Pawn
+}
+
+// change this, very hacky...
+export const CHESS_PIECES_DISPLAY_MAP: Record<string, Record<string, string>> = {
+    "King": {
+        "white": "♔",
+        "black": "♚"
+    },
+    "Queen": {
+        "white": "♕",
+        "black": "♛"
+    },
+    "Rook": {
+        "white": "♖",
+        "black": "♜"
+    },
+    "Bishop": {
+        "white": "♗",
+        "black": "♝"
+    },
+    "Knight": {
+        "white": "♘",
+        "black": "♞"
+    },
+    "Pawn": {
+        "white": "♙",
+        "black": "♟"
+    },
+
 }
 
 
