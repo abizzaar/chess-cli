@@ -200,34 +200,46 @@ const identifiers: { [id: string]: new (color: Color) => Piece } = {
     "p": Pawn
 }
 
-// change this, very hacky...
-export const CHESS_PIECES_DISPLAY_MAP: Record<string, Record<string, string>> = {
-    "King": {
-        "white": "♔",
-        "black": "♚"
-    },
-    "Queen": {
-        "white": "♕",
-        "black": "♛"
-    },
-    "Rook": {
-        "white": "♖",
-        "black": "♜"
-    },
-    "Bishop": {
-        "white": "♗",
-        "black": "♝"
-    },
-    "Knight": {
-        "white": "♘",
-        "black": "♞"
-    },
-    "Pawn": {
-        "white": "♙",
-        "black": "♟"
-    },
+// // change this, very hacky...
+// export const CHESS_PIECES_DISPLAY_MAP: Record<string, Record<string, string>> = {
+//     "King": {
+//         "white": "♔",
+//         "black": "♚"
+//     },
+//     "Queen": {
+//         "white": "♕",
+//         "black": "♛"
+//     },
+//     "Rook": {
+//         "white": "♖",
+//         "black": "♜"
+//     },
+//     "Bishop": {
+//         "white": "♗",
+//         "black": "♝"
+//     },
+//     "Knight": {
+//         "white": "♘",
+//         "black": "♞"
+//     },
+//     "Pawn": {
+//         "white": "♙",
+//         "black": "♟"
+//     },
+//     "Horse": {
+//         "white": "♘",
+//         "black": "♞"
+//     }
+// }
 
-}
+export const CHESS_PIECES_DISPLAY_MAP: Record<string, Record<string, string>> = {
+    Pawn:   { white: '♙', black: '♟' },      // U+2659, U+265F
+    Rook:   { white: '♖', black: '♜' },
+    Horse: { white: '♘', black: '♞' },
+    Bishop: { white: '♗', black: '♝' },
+    Queen:  { white: '♕', black: '♛' },
+    King:   { white: '♔', black: '♚' },
+};
 
 
 const INITIAL_POSITIONS = [
