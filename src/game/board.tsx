@@ -259,9 +259,11 @@ type Board = Array<Array<Piece | null>>;
 
 export class ChessBoard {
     private _board: Board;
+    turn: Color;
 
     constructor() {
         this._board = []
+        this.turn = "white"
         this.initializeBoard()
     }
 
@@ -294,6 +296,7 @@ export class ChessBoard {
         const piece = this._board[origin.row]![origin.col]!
         this._board[origin.row]![origin.col] = null
         this._board[destination.row]![destination.col] = piece
+        this.turn = this.turn === "white" ? "black" : "white"
     }
 
     getMoves(pos: Pos): Pos[] | null {
@@ -344,7 +347,7 @@ function isLowercase(char: string) {
     return char.toLowerCase() === char
 }
 
-function isInBoard(pos: Pos) {
+export function isInBoard(pos: Pos) {
    return pos.row >= 0 && pos.row <= 7 && pos.col >= 0 && pos.col <= 7 
 }
 
