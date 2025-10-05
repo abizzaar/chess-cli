@@ -12,16 +12,19 @@
 		"dev": "tsc --watch",
 		"test-lint": "prettier --check . && xo",
 		"test": "npm run build && ava dist/test/*.test.js",
-		"start": "npm run build && node dist/src/cli.js"
+		"start": "npm run build && node dist/src/cli.js",
+		"postinstall": "find node_modules/stockfish/src ! -name 'stockfish-17.1-lite-51f59da.js' ! -name 'stockfish-17.1-lite-51f59da.wasm' -type f -exec rm -f {} +"
 	},
 	"files": [
 		"dist"
 	],
 	"dependencies": {
+		"execa": "^9.6.0",
 		"ink": "^6.3.1",
 		"meow": "^11.0.0",
 		"react": "^19.0.0",
 		"react-devtools-core": "^6.1.5",
+		"stockfish": "^17.1.0",
 		"string-width": "^8.1.0"
 	},
 	"devDependencies": {

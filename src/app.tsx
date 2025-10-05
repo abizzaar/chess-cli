@@ -1,11 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {Box, Text, useApp, useInput} from 'ink';
 import { CHESS_PIECES_DISPLAY_MAP, ChessBoard, isInBoard, Pos } from './game/board.js';
-import stringWidth from 'string-width';
-
-function modulo(n: number, m: number) {
-	return ((n % m) + m) % m;
-  }
+import {execaNode} from 'execa';
 
 export default function App() {
 	const {exit} = useApp()
@@ -20,6 +16,21 @@ export default function App() {
 	const [selectedValidMoveIndex, setSelectedValidMoveIndex] = useState<number>(-1)
 
 	const cb = useRef(new ChessBoard())
+
+	useEffect(() => {
+
+		(async () => {
+			// TODO: handle exiting process
+			const cp = execaNode(`node_modules/stockfish/src/stockfish-17.1-lite-51f59da.js`, {
+				stdio: 'pipe'
+			});
+			cp.stdout!.setEncoding('utf8')
+			cp.stdout.on('data', line => {
+				console.log(line)
+			})
+			cp.stdin!.write('uci\n')
+		})()
+	}, [])
 
 
 	const includedInValidMoves = (i: number, j: number) => {
