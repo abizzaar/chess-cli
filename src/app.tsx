@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {Box, Text, useApp, useInput} from 'ink';
-import { CHESS_PIECES_DISPLAY_MAP, ChessBoard, isInBoard, Pos } from './game/board.js';
+import { boardToFenString, CHESS_PIECES_DISPLAY_MAP, ChessBoard, isInBoard, Pos } from './game/board.js';
 import {execaNode} from 'execa';
 
 export default function App() {
@@ -17,19 +17,71 @@ export default function App() {
 
 	const cb = useRef(new ChessBoard())
 
-	useEffect(() => {
+	const cancelSignal = useRef(new AbortController())
 
+	const cp = useRef(execaNode(`node_modules/stockfish/src/stockfish-17.1-lite-51f59da.js`, {
+		stdio: 'pipe',
+		cancelSignal: cancelSignal.current.signal
+	}));
+
+	const [isPaused, setIsPaused] = useState<boolean>(false)
+
+	// TODO: move to board.tsx
+	const fenPosToPos = (fenPos: string): Pos => {
+		if (fenPos.length !== 2) {
+			throw new Error(`fenPos was ${fenPos}`)
+		} 
+
+		const col = fenPos[0]
+		const row = fenPos[1]
+
+		return {
+			row: parseInt(row!) - 1,
+			col: col!.charCodeAt(0) - "a".charCodeAt(0)
+		}
+	}
+
+	const playStockfishMove = (fenMove: string) => {
+		// TODO: handle `(none)` fenMove
+		if (fenMove.length !== 4) {
+			throw new Error(`fenMove was ${fenMove}`)
+		}
+
+		const origin = fenMove.slice(0, 2)
+		const destination = fenMove.slice(2, 4)
+
+		cb.current.playMove(
+			fenPosToPos(origin),
+			fenPosToPos(destination)
+		)
+
+		setSelectedValidMoveIndex(-1)
+		setValidMovesPos([])
+		resetHoveredPos()
+		setIsPaused(false)
+	}
+
+	useEffect(() => {
 		(async () => {
-			// TODO: handle exiting process
-			const cp = execaNode(`node_modules/stockfish/src/stockfish-17.1-lite-51f59da.js`, {
-				stdio: 'pipe'
-			});
-			cp.stdout!.setEncoding('utf8')
-			cp.stdout.on('data', line => {
-				console.log(line)
+			cp.current.stdout!.setEncoding('utf8')
+			cp.current.stdout.on('data', (lines: string) => {
+				for (const line of lines.split("\n")) {
+					if (line.startsWith("bestmove")) {
+						const move = line.split(" ")[1]
+						playStockfishMove(move!)
+					}
+				}
 			})
-			cp.stdin!.write('uci\n')
+			cp.current.stdin!.write('uci\n')
+			cp.current.stdin!.write('isready\n')
+			cp.current.stdin!.write('ucinewgame\n')
 		})()
+
+		return () => {
+			if (cancelSignal.current) {
+				cancelSignal.current.abort()
+			}
+		}
 	}, [])
 
 
@@ -126,6 +178,10 @@ export default function App() {
 			setValidMovesPos([])
 		}
 
+		if (isPaused) {
+			return
+		}
+
 		if (validMovesPos.length === 0) {
 			if (key.leftArrow || input === "h") {
 				updateHoveredPos([0, -1])
@@ -134,10 +190,10 @@ export default function App() {
 				updateHoveredPos([0, 1])
 			}
 			if (key.upArrow || input === "k") {
-				updateHoveredPos([-1, 0])
+				updateHoveredPos([1, 0])
 			}
 			if (key.downArrow || input === "j") {
-				updateHoveredPos([1, 0])
+				updateHoveredPos([-1, 0])
 			}
 			if (key.return) {
 				setValidMovesPos(
@@ -155,16 +211,17 @@ export default function App() {
 				updateSelectedValidMove([0, 1])
 			}
 			if (key.upArrow || input === "k") {
-				updateSelectedValidMove([-1, 0])
+				updateSelectedValidMove([1, 0])
 			}
 			if (key.downArrow || input === "j") {
-				updateSelectedValidMove([1, 0])
+				updateSelectedValidMove([-1, 0])
 			}
 			if (key.return) {
 				cb.current!.playMove(hoveredPos, validMovesPos[selectedValidMoveIndex]!)
-				setSelectedValidMoveIndex(-1)
-				setValidMovesPos([])
-				resetHoveredPos()
+
+				cp.current.stdin!.write(`position fen ${boardToFenString(cb.current.board)}\n`)
+				cp.current.stdin!.write('go depth 10\n')
+				setIsPaused(true)
 			}
 		}
 	})
@@ -200,8 +257,9 @@ export default function App() {
 		return isLightSquare ? WHITE_SQUARE_BG : BLACK_SQUARE_BG
 	}
 
-	return cb.current.board.map((row, i) => (
-		<React.Fragment key={i}>
+	return cb.current.board.slice().reverse().map((row, iReverse) => {
+		const i = 7 - iReverse
+		return <React.Fragment key={i}>
 			<Text>
 				{
 					row.map((_, j) => (
@@ -257,5 +315,5 @@ export default function App() {
 				}
 			</Text>
 		</React.Fragment>
-	))
+	})
 }

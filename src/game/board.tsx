@@ -44,6 +44,7 @@ class Pawn extends Piece {
     getMoves(pos: Pos, board: Board): Pos[] {
         const result = []
 
+        // TODO: don't hardcode this
         const rowDelta = this.color === "white" ? 1 : -1
 
         // starting position double move
@@ -169,7 +170,7 @@ class Queen extends Piece {
     }
 }
 
-class Horse extends Piece {
+class Night extends Piece {
     getMoves(pos: Pos, board: Board): Pos[] {
         const deltas = [
             [2, 1],
@@ -193,49 +194,17 @@ class Horse extends Piece {
 
 const identifiers: { [id: string]: new (color: Color) => Piece } = {
     "r": Rook,
-    "h": Horse,
+    "n": Night,
     "b": Bishop,
     "q": Queen,
     "k": King,
     "p": Pawn
 }
 
-// // change this, very hacky...
-// export const CHESS_PIECES_DISPLAY_MAP: Record<string, Record<string, string>> = {
-//     "King": {
-//         "white": "♔",
-//         "black": "♚"
-//     },
-//     "Queen": {
-//         "white": "♕",
-//         "black": "♛"
-//     },
-//     "Rook": {
-//         "white": "♖",
-//         "black": "♜"
-//     },
-//     "Bishop": {
-//         "white": "♗",
-//         "black": "♝"
-//     },
-//     "Knight": {
-//         "white": "♘",
-//         "black": "♞"
-//     },
-//     "Pawn": {
-//         "white": "♙",
-//         "black": "♟"
-//     },
-//     "Horse": {
-//         "white": "♘",
-//         "black": "♞"
-//     }
-// }
-
 export const CHESS_PIECES_DISPLAY_MAP: Record<string, Record<string, string>> = {
     Pawn:   { white: '♙', black: '♟' },      // U+2659, U+265F
     Rook:   { white: '♖', black: '♜' },
-    Horse: { white: '♘', black: '♞' },
+    Night: { white: '♘', black: '♞' },
     Bishop: { white: '♗', black: '♝' },
     Queen:  { white: '♕', black: '♛' },
     King:   { white: '♔', black: '♚' },
@@ -243,14 +212,14 @@ export const CHESS_PIECES_DISPLAY_MAP: Record<string, Record<string, string>> = 
 
 
 const INITIAL_POSITIONS = [
-    ["r", "h", "b", "q", "k", "b", "h", "r"],
-    ["p", "p", "p", "p", "p", "p", "p", "p"],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
-    [" ", " ", " ", " ", " ", " ", " ", " "],
+    ["R", "N", "B", "Q", "K", "B", "N", "R"],
     ["P", "P", "P", "P", "P", "P", "P", "P"],
-    ["R", "H", "B", "Q", "K", "B", "H", "R"]
+    [" ", " ", " ", " ", " ", " ", " ", " "],
+    [" ", " ", " ", " ", " ", " ", " ", " "],
+    [" ", " ", " ", " ", " ", " ", " ", " "],
+    [" ", " ", " ", " ", " ", " ", " ", " "],
+    ["p", "p", "p", "p", "p", "p", "p", "p"],
+    ["r", "n", "b", "q", "k", "b", "n", "r"]
 ]
 
 
@@ -276,7 +245,7 @@ export class ChessBoard {
                 this._board[i]!.push(
                     char === " "
                     ? null
-                    : new identifiers[char.toLowerCase()]!(isLowercase(char) ? 'white' : 'black')
+                    : new identifiers[char.toLowerCase()]!(isLowercase(char) ? 'black' : 'white')
                 )
             }
         }
@@ -341,6 +310,41 @@ function computeBishopRookQueenMoves(pos: Pos, color: Color, board: Board, direc
     }
 
     return result 
+}
+
+export function boardToFenString(board: Board) {
+    const result = []
+
+    for (let row = 7; row >= 0; row--) {
+        let temp = ''
+        let numEmpty = 0
+        for (let col = 0; col < 8; col++) {
+            if (board[row]![col] === null)  {
+                numEmpty += 1
+            } else {
+                if (numEmpty !== 0) {
+                    temp += numEmpty
+                    numEmpty = 0
+                }
+                // TODO: remove hackiness
+                const char = board[row]![col]!.constructor.name[0] 
+                if (board[row]![col]!.color === "white") {
+                    temp += char
+                } else {
+                    temp += char!.toLowerCase()
+                }
+            }
+        }
+        if (numEmpty !== 0) {
+            temp += numEmpty
+            numEmpty = 0
+        }
+        result.push(temp)
+    }
+
+    // TODO: remove hardcoding to black's move
+    return result.join("/") + " b - - 0 2"
+
 }
 
 function isLowercase(char: string) {
