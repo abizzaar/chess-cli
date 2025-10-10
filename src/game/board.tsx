@@ -233,14 +233,14 @@ function computeIsCheckByPiece(
     board: Board,
     pos: Pos,
     piece: Piece,
-    opponentKingPos: Pos
+    kingPos: Pos
 ) {
     const moves = piece.getMoves(
         pos,
         board
     )
 
-    if (moves.find(m => m.row === opponentKingPos.row && m.col === opponentKingPos.col) !== null) {
+    if (moves.find(m => m.row === kingPos.row && m.col === kingPos.col) !== undefined) {
         return true
     }
 
@@ -249,31 +249,32 @@ function computeIsCheckByPiece(
 
 // The check can be initiated by not only the piece that was just moved; it could be through any piece.
 // Example: when a knight is moved, which was blocking the path between a bishop and the opponent's king.
+// Need to allow moving if it removes check
 function computeIsCheck(
     board: Board,
     color: Color
 ) {
-    let opponentKingPos = null
-    for (let i = 0; i < board.length; i++) {
+    let kingPos = null
+    outerLoop: for (let i = 0; i < board.length; i++) {
         for (let j = 0; j < board[0]!.length; j++) {
-            if (board[i]![j]?.constructor.name === 'King' && board[i]![j]?.color !== color) {
-                opponentKingPos = {
+            if (board[i]![j]?.constructor.name === 'King' && board[i]![j]?.color === color) {
+                kingPos = {
                     row: i,
                     col: j
                 }
-                break
+                break outerLoop
             }
         }
     }
 
-    if (opponentKingPos === null) {
-        throw new Error("Invalid state: Opponent king not found")
+    if (kingPos === null) {
+        throw new Error("Invalid state: King not found")
     }
 
     for (let i = 0; i < board.length; i++) {
         for (let j = 0; j < board[0]!.length; j++) {
             const piece = board[i]![j]
-            if (piece?.color === color) {
+            if (piece !== null && piece!.color !== color) {
                 if (
                     computeIsCheckByPiece(
                         board,
@@ -281,8 +282,8 @@ function computeIsCheck(
                             row: i,
                             col: j
                         },
-                        piece,
-                        opponentKingPos
+                        piece!,
+                        kingPos
                     )
                 ) {
                     return true
@@ -333,7 +334,13 @@ export class ChessBoard {
 
     playMove(origin: Pos, destination: Pos) {
         // TODO: check if valid before allowing
+
         const piece = this._board[origin.row]![origin.col]!
+
+        if (piece.color !== this.turn) {
+            throw new Error('Cannot play move for wrong player')
+        }
+
         this._board[origin.row]![origin.col] = null
         this._board[destination.row]![destination.col] = piece
         this.turn = this.turn === "white" ? "black" : "white"
@@ -350,17 +357,16 @@ export class ChessBoard {
             return null
         }
 
-        // TODO: uncomment after fixing tests
-
-        // if (square.color !== this.turn) {
-        //     return null
-        // }
-
-        // if (computeIsCheck(this.board, this.turn === "white" ? "black" : "white")) {
-        //     return []
-        // }
-
         return square.getMoves(pos, this._board)
+            .filter(move => {
+                this._board[pos.row]![pos.col] = null
+                const temp = this._board[move.row]![move.col]
+                this._board[move.row]![move.col] = square
+                const isCheck = computeIsCheck(this.board, square.color)
+                this._board[pos.row]![pos.col] = square
+                this._board[move.row]![move.col] = temp ?? null
+                return !isCheck
+            })
     }
 }
 
