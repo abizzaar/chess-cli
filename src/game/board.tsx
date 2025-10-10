@@ -357,7 +357,7 @@ export class ChessBoard {
         // }
 
         // if (computeIsCheck(this.board, this.turn === "white" ? "black" : "white")) {
-        //     return null
+        //     return []
         // }
 
         return square.getMoves(pos, this._board)
