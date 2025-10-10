@@ -21,6 +21,13 @@
  Making a move will update the board.
 
  We should also have a mechanism to guarantee that each player can only update its own piece.
+
+
+ What is remaining to implement?
+ - Check.
+ - Checkmate.
+ - Castling.
+
  */
 type Color = "white" | "black"
 
@@ -222,6 +229,71 @@ const INITIAL_POSITIONS = [
     ["r", "n", "b", "q", "k", "b", "n", "r"]
 ]
 
+function computeIsCheckByPiece(
+    board: Board,
+    pos: Pos,
+    piece: Piece,
+    opponentKingPos: Pos
+) {
+    const moves = piece.getMoves(
+        pos,
+        board
+    )
+
+    if (moves.find(m => m.row === opponentKingPos.row && m.col === opponentKingPos.col) !== null) {
+        return true
+    }
+
+    return false
+}
+
+// The check can be initiated by not only the piece that was just moved; it could be through any piece.
+// Example: when a knight is moved, which was blocking the path between a bishop and the opponent's king.
+function computeIsCheck(
+    board: Board,
+    color: Color
+) {
+    let opponentKingPos = null
+    for (let i = 0; i < board.length; i++) {
+        for (let j = 0; j < board[0]!.length; j++) {
+            if (board[i]![j]?.constructor.name === 'King' && board[i]![j]?.color !== color) {
+                opponentKingPos = {
+                    row: i,
+                    col: j
+                }
+                break
+            }
+        }
+    }
+
+    if (opponentKingPos === null) {
+        throw new Error("Invalid state: Opponent king not found")
+    }
+
+    for (let i = 0; i < board.length; i++) {
+        for (let j = 0; j < board[0]!.length; j++) {
+            const piece = board[i]![j]
+            if (piece?.color === color) {
+                if (
+                    computeIsCheckByPiece(
+                        board,
+                        {
+                            row: i,
+                            col: j
+                        },
+                        piece,
+                        opponentKingPos
+                    )
+                ) {
+                    return true
+                }
+            }
+        }
+    }
+
+    return false
+}
+
 
 // 8 x 8 board
 type Board = Array<Array<Piece | null>>;
@@ -261,7 +333,6 @@ export class ChessBoard {
 
     playMove(origin: Pos, destination: Pos) {
         // TODO: check if valid before allowing
-
         const piece = this._board[origin.row]![origin.col]!
         this._board[origin.row]![origin.col] = null
         this._board[destination.row]![destination.col] = piece
@@ -269,7 +340,6 @@ export class ChessBoard {
     }
 
     getMoves(pos: Pos): Pos[] | null {
-        // TODO: check invalid pos
         if (!isInBoard(pos)) {
             throw new Error("Invalid move entered")
         }
@@ -279,6 +349,16 @@ export class ChessBoard {
         if (!square) {
             return null
         }
+
+        // TODO: uncomment after fixing tests
+
+        // if (square.color !== this.turn) {
+        //     return null
+        // }
+
+        // if (computeIsCheck(this.board, this.turn === "white" ? "black" : "white")) {
+        //     return null
+        // }
 
         return square.getMoves(pos, this._board)
     }
@@ -344,7 +424,6 @@ export function boardToFenString(board: Board) {
 
     // TODO: remove hardcoding to black's move
     return result.join("/") + " b - - 0 2"
-
 }
 
 function isLowercase(char: string) {

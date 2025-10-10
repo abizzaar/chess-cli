@@ -3,14 +3,14 @@ import { computeMovesAsStringBoard } from './testUtils.js';
 
 test('king basic', t => {
 	const board = [
-		["r", "h", "b", "q", "_k", "b", "h", "r"],
+		["r", "n", "b", "q", "_k", "b", "n", "r"],
 		["p", "p", "p", "p", " ", "p", "p", "p"],
 		[" ", " ", " ", " ", "p", " ", " ", " "],
 		[" ", " ", " ", " ", " ", " ", " ", " "],
 		[" ", " ", " ", " ", " ", " ", " ", " "],
 		[" ", " ", " ", " ", " ", " ", " ", " "],
 		["P", "P", "P", "P", "P", "P", "P", "P"],
-		["R", "H", "B", "Q", "K", "B", "H", "R"]
+		["R", "N", "B", "Q", "K", "B", "N", "R"]
 	]
 
 	const actual = computeMovesAsStringBoard(
@@ -18,14 +18,14 @@ test('king basic', t => {
 	)
 
 	const expected = [
-		["r", "h", "b", "q", "k", "b", "h", "r"],
+		["r", "n", "b", "q", "k", "b", "n", "r"],
 		["p", "p", "p", "p", "x", "p", "p", "p"],
 		[" ", " ", " ", " ", "p", " ", " ", " "],
 		[" ", " ", " ", " ", " ", " ", " ", " "],
 		[" ", " ", " ", " ", " ", " ", " ", " "],
 		[" ", " ", " ", " ", " ", " ", " ", " "],
 		["P", "P", "P", "P", "P", "P", "P", "P"],
-		["R", "H", "B", "Q", "K", "B", "H", "R"]
+		["R", "N", "B", "Q", "K", "B", "N", "R"]
 	]
 
 	t.deepEqual(actual, expected)

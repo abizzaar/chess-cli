@@ -42,7 +42,7 @@ export default function App() {
 	}
 
 	const playStockfishMove = (fenMove: string) => {
-		// TODO: handle `(none)` fenMove
+		// TODO: handle `bestmove (none)`
 		if (fenMove.length !== 4) {
 			throw new Error(`fenMove was ${fenMove}`)
 		}
